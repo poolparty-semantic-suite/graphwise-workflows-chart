@@ -2,10 +2,10 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "graphrag-workflows.fullname" . }}
-  namespace: {{ include "graphrag-workflows.namespace" . }}
+  name: {{ include "graphwise-workflows.fullname" . }}
+  namespace: {{ include "graphwise-workflows.namespace" . }}
   labels:
-    {{- include "graphrag-workflows.labels" . | nindent 4 }}
+    {{- include "graphwise-workflows.labels" . | nindent 4 }}
   {{- with .Values.annotations }}
   annotations:
     {{- tpl (toYaml .) $ | nindent 4 }}
@@ -14,7 +14,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "graphrag-workflows.fullname" . }}
+    name: {{ include "graphwise-workflows.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

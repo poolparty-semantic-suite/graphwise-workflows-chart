@@ -1,8 +1,12 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "graphrag-workflows.name" -}}
-  {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- define "graphwise-workflows.name" -}}
+  {{- default .Chart.Name .Values.nameOverride | trunc 63 | replace "_" "-" | trimSuffix "-" }}
+{{- end }}
+
+{{- define "graphwise-workflows.runners.name" -}}
+  {{- printf "%s-%s" (include "graphwise-workflows.name" .) "task-runners" | trunc 63 | replace "_" "-" | trimSuffix "-" }}
 {{- end }}
 
 {{/*
@@ -10,7 +14,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "graphrag-workflows.fullname" -}}
+{{- define "graphwise-workflows.fullname" -}}
   {{- if .Values.fullnameOverride }}
     {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
   {{- else }}
@@ -23,23 +27,34 @@ If release name contains chart name it will be used as a full name.
   {{- end }}
 {{- end }}
 
+{{- define "graphwise-workflows.runners.fullname" -}}
+  {{- printf "%s-%s" (include "graphwise-workflows.fullname" .) "task-runners" | trunc 63 | replace "_" "-" | trimSuffix "-" }}
+{{- end }}
+
+{{- define "graphwise-workflows.secrets.encryption.fullname" -}}
+  {{- printf "%s-%s" (include "graphwise-workflows.fullname" .) "encryption" | trunc 63 | replace "_" "-" | trimSuffix "-" }}
+{{- end }}
+
+{{- define "graphwise-workflows.runners.secrets.token.fullname" -}}
+  {{- printf "%s-%s" (include "graphwise-workflows.fullname" .) "task-runners-token" | trunc 63 | replace "_" "-" | trimSuffix "-" }}
+{{- end }}
+
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "graphrag-workflows.chart" -}}
+{{- define "graphwise-workflows.chart" -}}
   {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "graphrag-workflows.labels" -}}
-helm.sh/chart: {{ include "graphrag-workflows.chart" . }}
-{{ include "graphrag-workflows.selectorLabels" . }}
+{{- define "graphwise-workflows.labels" -}}
+helm.sh/chart: {{ include "graphwise-workflows.chart" . }}
+{{ include "graphwise-workflows.selectorLabels" . }}
 app.kubernetes.io/version: {{ coalesce .Values.image.tag .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-app.kubernetes.io/component: graphrag-workflows
-app.kubernetes.io/part-of: graphrag
+app.kubernetes.io/component: graphwise-workflows
 {{- if .Values.labels -}}
   {{- tpl (toYaml .Values.labels) . | nindent 0 -}}
 {{- end -}}
@@ -48,17 +63,17 @@ app.kubernetes.io/part-of: graphrag
 {{/*
 Selector labels
 */}}
-{{- define "graphrag-workflows.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "graphrag-workflows.name" . }}
+{{- define "graphwise-workflows.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "graphwise-workflows.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "graphrag-workflows.serviceAccountName" -}}
+{{- define "graphwise-workflows.serviceAccountName" -}}
   {{- if .Values.serviceAccount.create }}
-    {{- default (include "graphrag-workflows.fullname" .) .Values.serviceAccount.name }}
+    {{- default (include "graphwise-workflows.fullname" .) .Values.serviceAccount.name }}
   {{- else }}
     {{- default "default" .Values.serviceAccount.name }}
   {{- end }}
@@ -67,6 +82,6 @@ Create the name of the service account to use
 {{/*
 Returns the namespace of the release.
 */}}
-{{- define "graphrag-workflows.namespace" -}}
+{{- define "graphwise-workflows.namespace" -}}
   {{- .Values.namespaceOverride | default .Release.Namespace | trunc 63 | trimSuffix "-" -}}
 {{- end -}}

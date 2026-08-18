@@ -3,10 +3,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "graphrag-workflows.fullname" . }}
-  namespace: {{ include "graphrag-workflows.namespace" . }}
+  name: {{ include "graphwise-workflows.fullname" . }}
+  namespace: {{ include "graphwise-workflows.namespace" . }}
   labels:
-    {{- include "graphrag-workflows.labels" . | nindent 4 }}
+    {{- include "graphwise-workflows.labels" . | nindent 4 }}
     {{- with .Values.service.labels }}
       {{- tpl (toYaml .) $ | nindent 4 }}
     {{- end }}
@@ -16,8 +16,9 @@ metadata:
   {{- end }}
 spec:
   type: {{ .Values.service.type }}
+  publishNotReadyAddresses: {{ .Values.service.publishNotReadyAddresses }}
   selector:
-    {{- include "graphrag-workflows.selectorLabels" . | nindent 4 }}
+    {{- include "graphwise-workflows.selectorLabels" . | nindent 4 }}
   {{- if .Values.service.externalTrafficPolicy }}
   externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
   {{- end }}

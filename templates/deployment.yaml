@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "graphrag-workflows.fullname" . }}
-  namespace: {{ include "graphrag-workflows.namespace" . }}
+  name: {{ include "graphwise-workflows.fullname" . }}
+  namespace: {{ include "graphwise-workflows.namespace" . }}
   labels:
-    {{- include "graphrag-workflows.labels" . | nindent 4 }}
+    {{- include "graphwise-workflows.labels" . | nindent 4 }}
   {{- with .Values.annotations }}
   annotations:
     {{- tpl (toYaml .) $ | nindent 4 }}
@@ -15,11 +15,11 @@ spec:
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   selector:
     matchLabels:
-      {{- include "graphrag-workflows.selectorLabels" . | nindent 6 }}
+      {{- include "graphwise-workflows.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "graphrag-workflows.selectorLabels" . | nindent 8 }}
+        {{- include "graphwise-workflows.selectorLabels" . | nindent 8 }}
         {{- with .Values.podLabels }}
           {{- tpl (toYaml .) $ | nindent 8 }}
         {{- end }}
@@ -31,7 +31,7 @@ spec:
         {{- end }}
     spec:
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
-      serviceAccountName: {{ include "graphrag-workflows.serviceAccountName" . }}
+      serviceAccountName: {{ include "graphwise-workflows.serviceAccountName" . }}
       automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
       {{- if .Values.schedulerName }}
       schedulerName: {{ .Values.schedulerName }}
@@ -53,7 +53,7 @@ spec:
         {{- else if .Values.persistence.enabled }}
         - name: storage
           persistentVolumeClaim:
-            claimName: {{ include "graphrag-workflows.fullname" . }}
+            claimName: {{ include "graphwise-workflows.fullname" . }}
         {{- else }}
         - name: storage
           emptyDir:
@@ -63,6 +63,11 @@ spec:
         - name: temp-dir
           emptyDir:
             {{- .Values.tempVolume.emptyDir | toYaml | nindent 12 }}
+        {{- end }}
+        {{- if and .Values.runners.external .Values.runners.persistence.shared.enabled }}
+        - name: shared-volume
+          emptyDir:
+            {{- .Values.runners.persistence.shared.emptyDir | toYaml | nindent 12 }}
         {{- end }}
       {{- with .Values.extraVolumes }}
         {{- tpl (toYaml .) $ | nindent 8 }}
@@ -84,13 +89,13 @@ spec:
                 topologyKey: {{ .Values.podAntiAffinity.topology }}
                 labelSelector:
                   matchLabels:
-                    {{- include "graphrag-workflows.selectorLabels" . | nindent 20 }}
+                    {{- include "graphwise-workflows.selectorLabels" . | nindent 20 }}
           {{- else if eq .Values.podAntiAffinity.preset "hard" }}
           requiredDuringSchedulingIgnoredDuringExecution:
             - topologyKey: {{ .Values.podAntiAffinity.topology }}
               labelSelector:
                 matchLabels:
-                  {{- include "graphrag-workflows.selectorLabels" . | nindent 18 }}
+                  {{- include "graphwise-workflows.selectorLabels" . | nindent 18 }}
           {{- else }}
             {{- fail (printf "Unknown podAntiAffinity preset '%s'" .Values.podAntiAffinity.preset) }}
           {{- end }}
@@ -107,15 +112,15 @@ spec:
       {{- end }}
       {{- if or .Values.global.imagePullSecrets .Values.image.pullSecrets }}
       imagePullSecrets:
-        {{- include "graphrag-workflows.combinedImagePullSecrets" . | nindent 8 }}
+        {{- include "graphwise-workflows.combinedImagePullSecrets" . | nindent 8 }}
       {{- end }}
       {{- with .Values.extraInitContainers }}
       initContainers:
         {{- tpl (toYaml .) $ | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ include "graphrag-workflows.name" . }}
-          image: {{ include "graphrag-workflows.image" . }}
+        - name: {{ include "graphwise-workflows.name" . }}
+          image: {{ include "graphwise-workflows.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- with .Values.command }}
           command: {{ toYaml . | nindent 12 }}
@@ -131,13 +136,13 @@ spec:
             {{- end }}
           envFrom:
             - configMapRef:
-                name: {{ include "graphrag-workflows.fullname" . }}
+                name: {{ include "graphwise-workflows.fullname" . }}
           {{- with .Values.extraEnvFrom }}
             {{- tpl (toYaml .) $ | nindent 12 }}
           {{- end }}
           {{- if or
             .Values.configuration.encryption.existingSecret
-            .Values.configuration.license.existingSecret
+            .Values.license.existingSecret
             .Values.configuration.postgresdb.credentials.existingSecret
             .Values.extraEnv
           }}
@@ -148,14 +153,20 @@ spec:
                 secretKeyRef:
                   name: {{ tpl .Values.configuration.encryption.existingSecret $ }}
                   key: {{ .Values.configuration.encryption.secretKey }}
+            {{- else if or .Values.configuration.encryption.key .Values.configuration.encryption.autogenerate }}
+            - name: N8N_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "graphwise-workflows.secrets.encryption.fullname" . }}
+                  key: {{ .Values.configuration.encryption.secretKey }}
             {{- end }}
-            {{- if .Values.configuration.license.existingSecret }}
+            {{- if .Values.license.existingSecret }}
             - name: N8N_LICENSE_ACTIVATION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ tpl .Values.configuration.license.existingSecret $ }}
-                  key: {{ .Values.configuration.license.secretKey }}
-                  optional: {{ .Values.configuration.license.optional }}
+                  name: {{ tpl .Values.license.existingSecret $ }}
+                  key: {{ .Values.license.licenseKey }}
+                  optional: {{ .Values.license.optional }}
             {{- end }}
             {{- if .Values.configuration.postgresdb.credentials.existingSecret }}
             - name: DB_POSTGRESDB_USER
@@ -171,6 +182,21 @@ spec:
                   name: {{ tpl .Values.configuration.postgresdb.credentials.existingSecret $ }}
                   key: {{ .Values.configuration.postgresdb.credentials.passwordKey }}
             {{- end }}
+            {{- if .Values.runners.external }}
+              {{- if .Values.runners.configuration.token.existingSecret }}
+            - name: N8N_RUNNERS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.runners.configuration.token.existingSecret . }}
+                  key: {{ .Values.runners.configuration.token.tokenKey }}
+              {{- else if or .Values.runners.configuration.token.token .Values.runners.configuration.token.autogenerate }}
+            - name: N8N_RUNNERS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "graphwise-workflows.runners.secrets.token.fullname" . }}
+                  key: {{ .Values.runners.configuration.token.tokenKey }}
+              {{- end }}
+            {{- end }}
             {{- with .Values.extraEnv }}
               {{- tpl (toYaml .) $ | nindent 12 }}
             {{- end }}
@@ -181,6 +207,10 @@ spec:
             {{- if .Values.tempVolume.enabled }}
             - name: temp-dir
               mountPath: /tmp
+            {{- end }}
+            {{- if and .Values.runners.external .Values.runners.persistence.shared.enabled }}
+            - name: shared-volume
+              mountPath: {{ .Values.runners.persistence.shared.mountPath }}
             {{- end }}
             {{- with .Values.extraVolumeMounts }}
               {{- tpl (toYaml .) $ | nindent 12 }}
@@ -200,6 +230,69 @@ spec:
           {{- with .Values.livenessProbe }}
           livenessProbe: {{- toYaml . | nindent 12 }}
           {{- end }}
+        {{- if .Values.runners.external }}
+        - name: {{ include "graphwise-workflows.runners.name" . }}
+          image: {{ include "graphwise-workflows.runners.image" . }}
+          imagePullPolicy: {{ .Values.runners.image.pullPolicy }}
+          {{- with .Values.runners.command }}
+          command: {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.runners.args }}
+          args: {{ toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.runners.containerPorts.http }}
+            {{- with .Values.runners.extraContainerPorts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "graphwise-workflows.runners.fullname" . }}
+            {{- with .Values.runners.extraEnvFrom }}
+              {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
+          env:
+            {{- if .Values.runners.configuration.token.existingSecret }}
+            - name: N8N_RUNNERS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.runners.configuration.token.existingSecret . }}
+                  key: {{ .Values.runners.configuration.token.tokenKey }}
+            {{- else if or .Values.runners.configuration.token.token .Values.runners.configuration.token.autogenerate }}
+            - name: N8N_RUNNERS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "graphwise-workflows.runners.secrets.token.fullname" . }}
+                  key: {{ .Values.runners.configuration.token.tokenKey }}
+            {{- end }}
+            {{- with .Values.runners.extraEnv }}
+              {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+          {{- if .Values.runners.persistence.shared.enabled }}
+            - name: shared-volume
+              mountPath: {{ .Values.runners.persistence.shared.mountPath }}
+          {{- end }}
+            {{- with .Values.runners.extraVolumeMounts }}
+              {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
+          {{- with .Values.runners.resources }}
+          resources: {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.runners.securityContext }}
+          securityContext: {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.runners.startupProbe }}
+          startupProbe: {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.runners.readinessProbe }}
+          readinessProbe: {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.runners.livenessProbe }}
+          livenessProbe: {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
         {{- with .Values.extraContainers }}
           {{ tpl (toYaml .) $ | nindent 8 }}
         {{- end }}

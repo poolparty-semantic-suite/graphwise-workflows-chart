@@ -1,20 +1,20 @@
 apiVersion: v2
-name: graphrag-workflows
-description: Graphwise's GraphRAG Workflows
+name: graphwise-workflows
+description: Graphwise's Workflows for automating workflow processes and knowledge graph retrieval
 type: application
-version: 1.2.1
-appVersion: 1.2.0
+version: 0.1.0
+appVersion: 1.0.0-M1
 kubeVersion: ^1.32.0-0
 home: https://graphwise.ai/
+icon: https://graphwise.ai/wp-content/uploads/2024/10/cropped-graphwise_favicon-192x192.png
 maintainers:
   - name: poolparty-semantic-suite
     email: support@graphwise.ai
     url: https://graphwise.ai
 sources:
-  - https://github.com/poolparty-semantic-suite/graphrag-charts
+  - https://github.com/poolparty-semantic-suite/graphwise-workflows-chart
 keywords:
   - graphwise
-  - graphrag
+  - workflows
   - semantic
-  - database
   - knowledge

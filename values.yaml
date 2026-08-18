@@ -29,10 +29,10 @@ global:
 # Naming and labels overrides #
 ###############################
 
-# Overrides the name of the chart affecting the names of the n8n resources.
+# Overrides the name of the chart affecting the names of the Workflows resources.
 nameOverride: ""
 
-# Overrides the naming of all n8n resources, effectively removing the chart's name and the release name prefix.
+# Overrides the naming of all Workflows resources, effectively removing the chart's name and the release name prefix.
 # This override takes precedence over anything in .Values.nameOverride
 fullnameOverride: ""
 
@@ -42,7 +42,7 @@ fullnameOverride: ""
 # The default value is .Release.Namespace if this is left unspecified.
 namespaceOverride: ""
 
-# Additional common labels to add to all n8n resources.
+# Additional common labels to add to all Workflows resources.
 # Values are processed as Helm templates.
 # Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 #
@@ -52,7 +52,7 @@ namespaceOverride: ""
 #   some-label: {{ .Values.someValue }}
 labels: {}
 
-# Additional common annotations to add to all n8n resources.
+# Additional common annotations to add to all Workflows resources.
 # Values are processed as Helm templates.
 # Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 #
@@ -62,27 +62,26 @@ labels: {}
 #   some-annotation: {{ .Values.someValue }}
 annotations: {}
 
-#####################################
-# n8n Image Configurations #
-#####################################
+##################################
+# Workflows Image Configurations #
+##################################
 
-# Image configurations for n8n service.
+# Image configurations for the Workflows services.
 # Ref: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  # The registry that hosts the n8n image.
-  # The default is to pull it from the official Docker registry, but this can be overridden to pull from other public or private registries.
+  # The registry that hosts the Workflows image.
   registry: maven.ontotext.com
 
-  # The repository name of the n8n image.
-  repository: graphrag-workflows
+  # The repository name of the Workflows image.
+  repository: graphwise-workflows
 
-  # Image tag that corresponds to the version of n8n.
+  # Image tag that corresponds to the version of the Workflows.
   # By default, the chart uses .Chart.AppVersion to construct the full image name.
-  # Use this to override the value from .Chart.AppVersion and effectively deploy a custom n8n version.
+  # Use this to override the value from .Chart.AppVersion and effectively deploy a custom Workflows version.
   tag: ""
 
-  # Expected SHA256 digest of the used n8n image, e.g. "sha256@abc"
-  # Use the digest to make sure you are always deploying the exact same n8n image.
+  # Expected SHA256 digest of the used Workflows image, e.g. "sha256@abc"
+  # Use the digest to make sure you are always deploying the exact same Workflows image.
   # Defining this would override .Chart.AppVersion and image.tag
   digest: ""
 
@@ -90,7 +89,8 @@ image:
   # Ref: https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy
   pullPolicy: IfNotPresent
 
-  # Secrets for pulling n8n image from secured registries.
+  # Secrets for pulling Workflows image from secured registries.
+  # This value is merged with any secrets defined in .Values.global.imagePullSecrets.
   # Values are processed as Helm templates.
   # Ref: https://kubernetes.io/docs/concepts/configuration/secret/#using-imagepullsecrets
   #
@@ -103,10 +103,10 @@ image:
 # Scaling Configurations #
 ##########################
 
-# Number of n8n pods to be deployed as part of the Deployment resources.
+# Number of Workflows pods to be deployed as part of the Deployment resources.
 replicas: 1
 
-# Horizontal Pod Autoscaler configuration that can automatically scale the number of n8n pods based on
+# Horizontal Pod Autoscaler configuration that can automatically scale the number of Workflows pods based on
 # resource utilization.
 # Ref: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
@@ -116,17 +116,30 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
 
-################################
-#      n8n Configurations      #
-################################
+######################################
+#      Workflows Configurations      #
+######################################
 
-# n8n runtime configuration settings.
-# For reference, see https://docs.n8n.io/hosting/configuration/environment-variables
+# A commercial license key is required for using enterprise features.
+# Ref: https://docs.n8n.io/hosting/configuration/environment-variables/licenses/#license-environment-variables
+license:
+  # Reference to a secret containing a field with the Workflows license key.
+  # The value is processed as a Helm template.
+  existingSecret: ""
+  # Name of the key in the existing secret that contains the license.
+  # The default is N8N_LICENSE_ACTIVATION_KEY, but it can be changed to map to a different secret key.
+  licenseKey: N8N_LICENSE_ACTIVATION_KEY
+  # Dedicated tenant identifier for organizations using N8N Enterprise.
+  tenantId: 1
+  # Defines the license secret as optional or not.
+  optional: false
+
+# Workflows runtime configuration settings.
 configuration:
-  # The external URL at which GraphRAG N8N workflow engine would be accessible.
+  # The external URL at which Graphwise Workflow engine would be accessible.
   # This can be a publicly available domain name, an internal one or even a Kubernetes service address.
   #
-  # This configuration is used by the default ConfigMap to properly set the context paths for N8N.
+  # This configuration is used by the default ConfigMap to properly set the context paths for the Workflows.
   # It also configures the hostname in the default Ingress resource, if enabled.
   # The value is processed as a Helm template.
   #
@@ -134,43 +147,43 @@ configuration:
   #
   # Note: When deploying on a context path different from /, you need to properly configure the Ingress according to the requirements of the
   # Ingress controller implementation.
-  externalUrl: http://n8n.127.0.0.1.nip.io/
+  externalUrl: http://workflows.127.0.0.1.nip.io/
 
-  # n8n configurations injected as environment variables via templates/configmap.yaml
+  # Workflows configurations injected as environment variables via templates/configmap.yaml
   # The values are processed as Helm templates.
+  # Ref: https://docs.n8n.io/deploy/host-n8n/configure-n8n/basic-configuration/use-environment-variables
   environment:
+    DB_TYPE: "postgresdb"
     N8N_GRACEFUL_SHUTDOWN_TIMEOUT: "30"
     N8N_LOG_LEVEL: "info"
-    DB_TYPE: "postgresdb"
-    N8N_WORKFLOW_OVERWRITE_DATATABLE_ID: "Utils - Calculate LLM usage, Error - Sync"
-    N8N_WORKFLOW_OVERWRITE_PARALLEL_DATATABLE_ID: "Main, Step - Intent Classification - Async, Step - Graph Modeling Concept Enricher - Async, Step - Graph Modeling Expansion - Async, Step - Followups generation - Async, Step - Vector Search - Async, Step - GraphDB MCP - Async, Error - Async, Error - workflow, Parallel - Steps Batching, Step - Output guardrails - Async, Step - Followups generation - Async,Parallel Post Final Answer - Main,Parallel - Main,Parallel Post Final Answer - Main,Check for timeouts,Parallel - Steps Messaging,Vector search tool"
-    N8N_WORKFLOW_OVERWRITE_SIMPLECACHE_DATATABLE_ID: "Fetch Concept Details"
+    N8N_METRICS: "true"
+    N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+    N8N_PROXY_HOPS: "1"
+    # Task runners
+    # See https://docs.n8n.io/deploy/host-n8n/configure-n8n/basic-configuration/use-environment-variables/task-runners#n8n-instance-environment-variables
+    N8N_RUNNERS_MAX_PAYLOAD: 1073741824
+    N8N_RUNNERS_MAX_CONCURRENCY: 5
+    N8N_RUNNERS_TASK_TIMEOUT: 300
+    N8N_RUNNERS_TASK_REQUEST_TIMEOUT: 60
+    N8N_RUNNERS_BROKER_PORT: 5679
 
-  # Encryption key for n8n credentials.
-  # By default, if not set, n8n will generate a random key on startup and will use it to encrypt all credentials.
+  # Encryption key for Workflows credentials.
+  # By default, if not set, Workflows will generate a random key on startup and will use it to encrypt all credentials.
   encryption:
-    # Reference to a secret containing a field with the encryption key.
+    # Plain text encryption key. Use only for development and testing.
+    # For production, prefer an existing secret created outside the chart lifecycle.
+    key: ""
+    # When set to true, the chart will generate a random encryption key. Use only for development and testing.
+    # For production, prefer an existing secret created outside the chart lifecycle.
+    autogenerate: false
+    # Reference to a Secret containing a field with the encryption key.
     # The value is processed as a Helm template.
     existingSecret: ""
     # Name of the key in the existing secret that contains the encryption key.
     # The default is N8N_ENCRYPTION_KEY, but it can be changed to map to a different secret key.
     secretKey: N8N_ENCRYPTION_KEY
 
-  # A commercial license key is required for using enterprise features.
-  # Ref: https://docs.n8n.io/hosting/configuration/environment-variables/licenses/#license-environment-variables
-  license:
-    # Reference to a secret containing a field with the n8n license key.
-    # The value is processed as a Helm template.
-    existingSecret: ""
-    # Name of the key in the existing secret that contains the license.
-    # The default is N8N_LICENSE_ACTIVATION_KEY, but it can be changed to map to a different secret key.
-    secretKey: N8N_LICENSE_ACTIVATION_KEY
-    # Dedicated tenant identifier for organizations using n8n Enterprise.
-    tenantId: 1
-    # Defines the license secret as optional or not.
-    optional: false
-
-  # Configurations for connecting n8n to a PostgreSQL database.
+  # Configurations for connecting Workflows to a PostgreSQL database.
   # Ref: https://docs.n8n.io/hosting/configuration/environment-variables/database/#postgresql
   postgresdb:
     # Hostname of the PostgreSQL database.
@@ -179,7 +192,7 @@ configuration:
     # Port of the PostgreSQL database.
     port: 5432
     # Name of the database to connect to in PostgreSQL.
-    database: n8n
+    database: workflows
     # Credentials for connecting to the PostgreSQL database.
     credentials:
       # Reference to a secret containing the credentials for connecting to the PostgreSQL database.
@@ -194,10 +207,10 @@ configuration:
 # Ingress Configurations #
 ##########################
 
-# Configurations for the default Ingress resource for n8n.
+# Configurations for the default Ingress resource for Workflows.
 #
-# The default Ingress in this chart makes no assumptions of what Ingress controller is being used, it's up to you to define any specific annotations
-# required by the controller implementation in your cluster.
+# The default Ingress in this chart makes no assumptions of what Ingress controller is being used. It's up to you to
+# define any specific annotations required by the controller implementation in your cluster.
 #
 # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
@@ -212,10 +225,10 @@ ingress:
   # Additional annotations to append to the Ingress resource.
   # Values are processed as Helm templates.
   annotations: {}
-  # The domain on which the n8n service will be exposed via Ingress.
+  # The domain on which the Workflows service will be exposed via Ingress.
   # If set, overrides the host from .Values.configuration.externalUrl
   host: ""
-  # The context path on which the n8n service will be accessible via Ingress.
+  # The context path on which the Workflows service will be accessible via Ingress.
   # If set, overrides the context path from .Values.configuration.externalUrl
   path: ""
   # Sets the ingress path type.
@@ -241,7 +254,7 @@ ingress:
 # Service Configurations #
 ##########################
 
-# Configurations for n8n Service.
+# Configurations for Workflows Service.
 # Ref: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
   # Enables or disables the Service deployment
@@ -255,10 +268,12 @@ service:
   # Service type
   # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: ClusterIP
+  # Instructs if DNS records are created for not-ready Pods.
+  publishNotReadyAddresses: false
   # Ports exposed by the Service.
   # Note: If you want to add additional ports, use .Values.service.extraPorts.
   ports:
-    # Port mapped to n8n HTTP API.
+    # Port mapped to Workflows HTTP API.
     http: 5678
   # Exposes the Service on a specific node port on the host machine when "serviceType: NodePort"
   # If left undefined, K8S will pick a random port from the node port range of the cluster.
@@ -287,14 +302,16 @@ service:
 ##############################
 
 persistence:
-  # Toggles the persistence of n8n data.
+  # Toggles the persistence of Workflows data.
+  # By default, this is disabled and the chart will fall back to using an empyDir volume.
+  #
   # - If enabled, the Deployment will use a PVC template and rely on the CSI to dynamically provision Persistent Volumes.
   # - If disabled, it falls back to an emptyDir volume unless an existing PVC is provided with .Values.persistence.existingVolumeClaim.
-  enabled: true
+  enabled: false
 
   # Storage location inside the container where the PersistenceClaimVolume will be mounted at.
   # The value is processed as a Helm template.
-  path: /var/lib/graphrag/n8n
+  path: /var/lib/graphwise/workflows
 
   # Configurations for PVC persistence.
   # By default, the PVC does not declare a particular storage class, allowing the CSI to select the default storage class in the cluster.
@@ -306,7 +323,7 @@ persistence:
     # Additional annotations to add to the PVC template.
     # Values are processed as Helm templates.
     annotations: {}
-    # Specification for a PVC to be created for the n8n Deployment.
+    # Specification for a PVC to be created for the Workflows Deployment.
     # Values are processed as Helm templates.
     # Tune the spec according to your needs.
     spec:
@@ -316,9 +333,9 @@ persistence:
         - ReadWriteOnce
       resources:
         requests:
-          storage: 2Gi
+          storage: 1Gi
 
-  # Existing PersistentVolumeClaim to attach to the n8n Deployment for persistent storage.
+  # Existing PersistentVolumeClaim to attach to the Workflows Deployment for persistent storage.
   # Providing an existing PVC will disable the creation of the default PVC in this chart.
   # Value is processed as a Helm template.
   existingVolumeClaim: ""
@@ -331,8 +348,9 @@ persistence:
     sizeLimit: 1Gi
 
 # Configurations for an emptyDir volume for the /tmp folder.
-# Because the default security context in .Values.securityContext configures the root filesystem to be in read-only mode, certain N8N features
-# cannot create and write files in /tmp. If you don't use a read-only root filesystem, you can disable this with .Values.tempVolume.enabled
+# Because the default security context in .Values.securityContext configures the root filesystem to be in read-only mode,
+# certain Workflows features cannot create and write files in /tmp. If you don't use a read-only root filesystem, you
+# can disable this with .Values.tempVolume.enabled
 tempVolume:
   # Toggles the temp folder emptyDir volume creation.
   # - If enabled, the Deployment will use an emptyDir volume for /tmp.
@@ -382,20 +400,20 @@ dnsPolicy: ""
 # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
 priorityClassName: ""
 
-# Overrides the default n8n container command.
+# Overrides the default Workflows container command.
 # Use only for troubleshooting!
 # See https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/
 command: []
 
-# Overrides the default n8n container command's arguments.
+# Overrides the default Workflows container command's arguments.
 # Use only for troubleshooting!
 # See https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/
 args: []
 
-# Ports used by the n8n container
+# Ports used by the Workflows container
 # Note: If you want to add additional ports, use .Values.extraContainerPorts.
 containerPorts:
-  # Port mapped to n8n listener.
+  # Port mapped to the Workflows listener.
   http: 5678
 
 # Additional labels to append to the Pod definition.
@@ -412,7 +430,7 @@ podAnnotations: {}
 # Security Context Configurations #
 ###################################
 
-# Defines privilege and access control settings for all containers in the n8n Pod.
+# Defines privilege and access control settings for all containers in the Workflows Pods.
 # See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
 podSecurityContext:
   runAsNonRoot: true
@@ -423,7 +441,7 @@ podSecurityContext:
   seccompProfile:
     type: RuntimeDefault
 
-# Defines privilege and access control settings for the container running n8n.
+# Defines privilege and access control settings for the container running the Workflows.
 # See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 securityContext:
   allowPrivilegeEscalation: false
@@ -449,7 +467,7 @@ nodeSelector: {}
 # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
 affinity: {}
 
-# Default podAntiAffinity rule ensuring that n8n pods are scheduled on different Kubernetes nodes.
+# Default podAntiAffinity rule ensuring that Workflows pods are scheduled on different Kubernetes nodes.
 #
 # Possible values for .Values.podAntiAffinity.preset are:
 # - "soft" (default) - Configures a preferredDuringSchedulingIgnoredDuringExecution rule.
@@ -475,14 +493,14 @@ topologySpreadConstraints: []
 # Resource Configuration #
 ##########################
 
-# Resource configurations for the n8n containers.
+# Resource configurations for the Workflows containers.
 # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/
 # Ref: https://docs.n8n.io/hosting/installation/server-setups/google-kubernetes-engine/#pod-resources
 resources:
   limits:
-    memory: 512Mi
+    memory: 1Gi
   requests:
-    memory: 256Mi
+    memory: 512Mi
     cpu: 100m
 
 #########################
@@ -492,7 +510,7 @@ resources:
 # Ref: https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/
 # Ref: https://docs.n8n.io/hosting/logging-monitoring/monitoring/#healthz-and-healthzreadiness
 
-# Configurations for the n8n container startup probe.
+# Configurations for the Workflows container startup probe.
 startupProbe:
   httpGet:
     path: /healthz/readiness
@@ -502,7 +520,7 @@ startupProbe:
   timeoutSeconds: 1
   periodSeconds: 3
 
-# Configurations for the n8n container readiness probe.
+# Configurations for the Workflows container readiness probe.
 readinessProbe:
   httpGet:
     path: /healthz/readiness
@@ -511,7 +529,7 @@ readinessProbe:
   timeoutSeconds: 5
   periodSeconds: 10
 
-# Configurations for the n8n container liveness probe.
+# Configurations for the Workflows container liveness probe.
 livenessProbe:
   httpGet:
     path: /healthz
@@ -525,19 +543,19 @@ livenessProbe:
 # Additional Deployment Configurations #
 ########################################
 
-# Additional environment variables to be set for the n8n containers.
+# Additional environment variables to be set for the Workflows containers.
 # Values are processed as Helm templates.
 extraEnvFrom: []
 
-# Additional environment variables to be set for the n8n containers.
+# Additional environment variables to be set for the Workflows containers.
 # Values are processed as Helm templates.
 extraEnv: []
 
-# Additional volumes to be set for the n8n Pod.
+# Additional volumes to be set for the Workflows Pod.
 # Values are processed as Helm templates.
 extraVolumes: []
 
-# Additional volume mounts to be set for the n8n containers.
+# Additional volume mounts to be set for the Workflows containers.
 # Values are processed as Helm templates.
 extraVolumeMounts: []
 
@@ -545,10 +563,10 @@ extraVolumeMounts: []
 # Values are processed as Helm templates.
 extraInitContainers: []
 
-# Additional n8n container ports to expose.
+# Additional Workflows container ports to expose.
 extraContainerPorts: {}
 
-# Additional containers to insert into the n8n Pod, e.g. sidecar containers
+# Additional containers to insert into the Workflows Pod, e.g. sidecar containers
 # Values are processed as Helm templates.
 extraContainers: []
 
@@ -556,21 +574,24 @@ extraContainers: []
 # Pod Disruption Budget Configurations #
 ########################################
 
-# Configurations for n8n default Pod Disruption Budget.
+# Configurations for Workflows default Pod Disruption Budget.
 # Ref: https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets
 podDisruptionBudget:
   enabled: true
-  minAvailable: 51%
-  maxUnavailable: ""
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  # This effectively tolerates a disruption.
+  # Tune these values based on your needs.
+  maxUnavailable: 1
+  minAvailable: ""
 
 ##################################
 # Service Account Configurations #
 ##################################
 
-# Configurations for the default ServiceAccount for n8n.
+# Configurations for the default ServiceAccount for Workflows.
 # Ref: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
-  # Specifies whether a ServiceAccount should be created for n8n.
+  # Specifies whether a ServiceAccount should be created for Workflows.
   create: false
 
   # The name of the ServiceAccount to use.
@@ -584,6 +605,206 @@ serviceAccount:
   # If .Values.serviceAccount.create is true, insert additional annotations to the created ServiceAccount.
   # Values are processed as Helm templates.
   annotations: {}
+
+##########################
+# Workflows Task Runners #
+##########################
+
+# The chart can be configured to run tasks runners as a side-car container next to the main Workflows container.
+# This is useful for cases where the main Workflows container is not equipped with the necessary binaries or libraries
+# or simply for better task isolation.
+
+runners:
+  # Toggles the Workflows task runners deployment mode: external or internal
+  # - When set to true, the chart will deploy the task runners as a side-car container that attaches to the Workflows instance
+  # - When set to false, the chart will configure the main Workflows instance to use internal task runners
+  external: false
+
+  ###############################################
+  # Workflows Task Runners Image Configurations #
+  ###############################################
+
+  # Image configurations for the Workflows task runners.
+  # Ref: https://kubernetes.io/docs/concepts/containers/images/
+  image:
+    # The registry that hosts the Workflows task runners image.
+    registry: maven.ontotext.com
+
+    # The repository name of the Workflows task runners image.
+    repository: graphwise-runners
+
+    # Image tag that corresponds to the version of the Workflows task runners.
+    tag: 1.0.0-M1
+
+    # Expected SHA256 digest of the used Workflows task runners image, e.g. "sha256@abc"
+    # Use the digest to make sure you are always deploying the exact same Workflows task runners image.
+    # Defining this would override runners.image.tag
+    digest: ""
+
+    # Defines the policy for pulling images
+    # Ref: https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy
+    pullPolicy: IfNotPresent
+
+    # Secrets for pulling Workflows task runners image from secured registries.
+    # This value is merged with any secrets defined in .Values.global.imagePullSecrets.
+    # Values are processed as Helm templates.
+    # Ref: https://kubernetes.io/docs/concepts/configuration/secret/#using-imagepullsecrets
+    #
+    # Example:
+    # pullSecrets:
+    #   - name: my-pull-secret
+    pullSecrets: []
+
+  #########################################
+  # Workflows Task Runners Configurations #
+  #########################################
+
+  # Workflows Task Runners configuration settings.
+  configuration:
+    # Environment variables to be set for the Workflows task runners, injected as a ConfigMap
+    # Values are processed as Helm templates.
+    # See https://docs.n8n.io/deploy/host-n8n/configure-n8n/basic-configuration/use-environment-variables/task-runners#task-runner-launcher-environment-variables
+    environment:
+      N8N_RUNNERS_LAUNCHER_LOG_LEVEL: info
+      N8N_RUNNERS_TASK_BROKER_URI: http://127.0.0.1:5679
+      N8N_RUNNERS_MAX_PAYLOAD: 1073741824
+      N8N_RUNNERS_MAX_CONCURRENCY: 5
+      N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT: 15
+
+    # Authentication token for the Workflows task runners and the main Workflows instances.
+    token:
+      # Plain text authentication token. Use only for development and testing.
+      # For production, prefer an existing secret created outside the chart lifecycle.
+      token: ""
+      # When set to true, the chart will generate a random authentication token. Use only for development and testing.
+      # For production, prefer an existing secret created outside the chart lifecycle.
+      autogenerate: false
+      # Reference to a Secret containing a field with the authentication token.
+      # The value is processed as a Helm template.
+      existingSecret: ""
+      # Name of the key in the existing Secret that contains the authentication token.
+      # The default is N8N_RUNNERS_AUTH_TOKEN, but it can be changed to map to a different secret key.
+      tokenKey: N8N_RUNNERS_AUTH_TOKEN
+
+  ###########################################
+  # Task Runners Persistence Configurations #
+  ###########################################
+
+  # Persistence configuration for the Workflows task runners.
+  persistence:
+    # Shared volume for storing data between Workflows instances and its task runners.
+    shared:
+      # Toggles the shared volume creation.
+      # - If enabled, the Deployment will use an ephemeral emptyDir to store the shared data.
+      enabled: true
+      # Storage location inside the containers where the shared volume will be mounted at.
+      mountPath: /home/node/.n8n-files
+      # Configurations for an ephemeral emptyDir volume to be used for shared data storage between Workflows instances
+      # and task runners.
+      # Ref: https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/
+      emptyDir:
+        # Default emptyDir limit, override to your needs.
+        sizeLimit: 1Gi
+
+  #########################################
+  # Task Runners Deployment Configuration #
+  #########################################
+
+  # Ports used by the Workflows task runners container
+  # Note: If you want to add additional ports, use .Values.runners.extraContainerPorts.
+  containerPorts:
+    # Port mapped to the Workflows task runners listener.
+    http: 5680
+
+  # Defines privilege and access control settings for the container running the Workflows task runners.
+  # See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  #######################################
+  # Task Runners Resource Configuration #
+  #######################################
+
+  # Resource configurations for the Workflows task runners containers.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/
+  # Ref: https://docs.n8n.io/hosting/installation/server-setups/google-kubernetes-engine/#pod-resources
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      memory: 256Mi
+      cpu: 100m
+
+  ######################################
+  # Task Runners Probes Configurations #
+  ######################################
+
+  # Ref: https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/
+  # Ref: https://docs.n8n.io/hosting/logging-monitoring/monitoring/#healthz-and-healthzreadiness
+
+  # Configurations for the Workflows task runners container startup probe.
+  startupProbe:
+    httpGet:
+      path: /healthz
+      port: http
+      scheme: HTTP
+    failureThreshold: 300
+    timeoutSeconds: 1
+    periodSeconds: 3
+
+  # Configurations for the Workflows task runners container readiness probe.
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+      scheme: HTTP
+    timeoutSeconds: 5
+    periodSeconds: 10
+
+  # Configurations for the Workflows task runners container liveness probe.
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+      scheme: HTTP
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+    periodSeconds: 10
+
+  #####################################################
+  # Additional Task Runners Deployment Configurations #
+  #####################################################
+
+  # Additional environment variables to be set for the Workflows task runners containers.
+  # Values are processed as Helm templates.
+  extraEnvFrom: []
+
+  # Additional environment variables to be set for the Workflows  task runners containers.
+  # Values are processed as Helm templates.
+  extraEnv: []
+
+  # Additional volume mounts to be set for the Workflows  task runners containers.
+  # Values are processed as Helm templates.
+  extraVolumeMounts: []
+
+  # Additional Workflows container ports to expose.
+  extraContainerPorts: {}
+
+  # Overrides the default Workflows task runners container command.
+  # Use only for troubleshooting!
+  # See https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/
+  command: []
+
+  # Overrides the default Workflows task runners container command's arguments.
+  # Use only for troubleshooting!
+  # See https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/
+  args: []
 
 #################################
 # Additional Kubernetes Objects #

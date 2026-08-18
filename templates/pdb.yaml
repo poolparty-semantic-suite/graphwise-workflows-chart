@@ -2,10 +2,10 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "graphrag-workflows.fullname" . }}
-  namespace: {{ include "graphrag-workflows.namespace" . }}
+  name: {{ include "graphwise-workflows.fullname" . }}
+  namespace: {{ include "graphwise-workflows.namespace" . }}
   labels:
-    {{- include "graphrag-workflows.labels" . | nindent 4 }}
+    {{- include "graphwise-workflows.labels" . | nindent 4 }}
   {{- with .Values.annotations }}
   annotations:
     {{- tpl (toYaml .) $ | nindent 4 }}
@@ -17,7 +17,8 @@ spec:
   {{- if .Values.podDisruptionBudget.maxUnavailable }}
   maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
   {{- end }}
+  unhealthyPodEvictionPolicy: {{ .Values.podDisruptionBudget.unhealthyPodEvictionPolicy }}
   selector:
     matchLabels:
-      {{- include "graphrag-workflows.selectorLabels" . | nindent 6 }}
+      {{- include "graphwise-workflows.selectorLabels" . | nindent 6 }}
 {{- end }}

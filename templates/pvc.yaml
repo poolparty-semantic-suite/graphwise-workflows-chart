@@ -3,9 +3,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "graphrag-workflows.fullname" . }}
+  name: {{ include "graphwise-workflows.fullname" . }}
   labels:
-    {{- include "graphrag-workflows.labels" . | nindent 4 }}
+    {{- include "graphwise-workflows.labels" . | nindent 4 }}
     {{- with .Values.persistence.volumeClaim.labels }}
       {{- tpl (toYaml .) $ | nindent 4 }}
     {{- end }}
