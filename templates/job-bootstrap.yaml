@@ -1,0 +1,151 @@
+{{- if .Values.bootstrap.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "graphwise-workflows.bootstrap.job.fullname" . }}
+  namespace: {{ include "graphwise-workflows.namespace" . }}
+  labels:
+    {{- include "graphwise-workflows.labels" . | nindent 4 }}
+  annotations:
+  {{- with .Values.annotations }}
+    {{- tpl (toYaml .) $ | nindent 4 }}
+  {{- end }}
+  {{- with .Values.bootstrap.hook.annotations }}
+    {{- tpl (toYaml .) $ | nindent 4 }}
+  {{- end }}
+spec:
+  backoffLimit: {{ .Values.bootstrap.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.bootstrap.ttlSecondsAfterFinished }}
+  {{- if .Values.bootstrap.activeDeadlineSeconds }}
+  activeDeadlineSeconds: {{ .Values.bootstrap.activeDeadlineSeconds }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "graphwise-workflows.bootstrap.job.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      {{- if .Values.bootstrap.schedulerName }}
+      schedulerName: {{ .Values.schedulerName }}
+      {{- end }}
+      {{- with .Values.bootstrap.dnsConfig }}
+      dnsConfig: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.bootstrap.dnsPolicy }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      {{- end }}
+      {{- if .Values.bootstrap.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
+      {{- with .Values.bootstrap.nodeSelector }}
+      nodeSelector: {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}
+      {{- with .Values.bootstrap.affinity }}
+      affinity: {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}
+      {{- with .Values.bootstrap.tolerations }}
+      tolerations: {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}
+      {{- with .Values.bootstrap.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.global.imagePullSecrets .Values.bootstrap.image.pullSecrets }}
+      imagePullSecrets:
+        {{- include "graphwise-workflows.bootstrap.job.combinedImagePullSecrets" . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.bootstrap.podSecurityContext }}
+      securityContext: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.bootstrap.extraVolumes }}
+      volumes:
+        {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: wait-for-workflows
+          image: {{ include "graphwise-workflows.bootstrap.job.curl.image" . }}
+          imagePullPolicy: {{ .Values.bootstrap.image.pullPolicy }}
+          env:
+            - name: WORKFLOWS_URL
+              value: {{ include "graphwise-workflows.internal-url" . }}
+            - name: WAIT_TIMEOUT
+              value: {{ .Values.bootstrap.configuration.wait_timeout | toString | quote }}
+            {{- with .Values.bootstrap.extraEnv }}
+              {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
+          {{- with .Values.bootstrap.extraEnvFrom }}
+          envFrom:
+            {{- tpl (toYaml .) $ | nindent 12 }}
+          {{- end }}
+          {{- with .Values.bootstrap.securityContext }}
+          securityContext: {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.bootstrap.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.bootstrap.extraVolumeMounts }}
+          volumeMounts:
+            {{- tpl (toYaml .) $ | nindent 12 }}
+          {{- end }}
+          command:
+            - sh
+            - -c
+            - |
+              timeout ${WAIT_TIMEOUT} sh -c '
+                until curl -sf -o /dev/null "${WORKFLOWS_URL}/healthz/readiness"; do
+                  echo "Waiting for Workflows to be ready..."
+                  sleep 5
+                done
+              '
+        {{- with .Values.bootstrap.extraVolumes }}
+          {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: bootstrap-workflows
+          image: {{ include "graphwise-workflows.bootstrap.job.image" . }}
+          imagePullPolicy: {{ .Values.bootstrap.image.pullPolicy }}
+          env:
+            - name: POSTGRES_HOSTNAME
+              value: {{ tpl .Values.configuration.postgresdb.host . }}
+            - name: POSTGRES_DATABASE
+              value: {{ tpl .Values.configuration.postgresdb.database . }}
+            {{- if .Values.configuration.postgresdb.credentials.existingSecret }}
+            - name: POSTGRES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.configuration.postgresdb.credentials.existingSecret $ }}
+                  key: {{ .Values.configuration.postgresdb.credentials.usernameKey }}
+            {{- end }}
+            {{- if .Values.configuration.postgresdb.credentials.existingSecret }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.configuration.postgresdb.credentials.existingSecret $ }}
+                  key: {{ .Values.configuration.postgresdb.credentials.passwordKey }}
+            {{- end }}
+            {{- with .Values.bootstrap.extraEnv }}
+              {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
+          {{- with .Values.bootstrap.extraEnvFrom }}
+          envFrom:
+            {{- tpl (toYaml .) $ | nindent 12 }}
+          {{- end }}
+          {{- with .Values.bootstrap.securityContext }}
+          securityContext: {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.bootstrap.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.bootstrap.extraVolumeMounts }}
+          volumeMounts:
+            {{- tpl (toYaml .) $ | nindent 12 }}
+          {{- end }}
+          {{- with .Values.bootstrap.command }}
+          command: {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.bootstrap.args }}
+          args: {{ toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

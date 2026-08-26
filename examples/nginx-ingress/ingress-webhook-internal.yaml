@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workflows-internal-webhooks
+  annotations:
+    nginx.ingress.kubernetes.io/whitelist-source-range: "0.0.0.0/32"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: workflows.127.0.0.1.nip.io
+      http:
+        paths:
+          - path: /webhook/internal
+            pathType: Prefix
+            backend:
+              service:
+                name: graphwise-workflows
+                port:
+                  number: 5678

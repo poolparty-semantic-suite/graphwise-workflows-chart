@@ -249,7 +249,7 @@ spec:
           args: {{ toYaml . | nindent 12 }}
           {{- end }}
           ports:
-            - name: http
+            - name: http-runners
               containerPort: {{ .Values.runners.containerPorts.http }}
             {{- with .Values.runners.extraContainerPorts }}
               {{- toYaml . | nindent 12 }}

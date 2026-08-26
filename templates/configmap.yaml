@@ -31,7 +31,7 @@ data:
   DB_POSTGRESDB_PORT: {{ .Values.configuration.postgresdb.port | quote }}
   {{- end }}
   {{- if not (hasKey .Values.configuration.environment "DB_POSTGRESDB_DATABASE") }}
-  DB_POSTGRESDB_DATABASE: {{ .Values.configuration.postgresdb.database | quote }}
+  DB_POSTGRESDB_DATABASE: {{ tpl .Values.configuration.postgresdb.database $ | quote }}
   {{- end }}
   {{- end }}
   {{- if not (hasKey .Values.configuration.environment "N8N_PATH") }}

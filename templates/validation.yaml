@@ -1,0 +1,18 @@
+{{- define "graphwise-workflows.validate.bootstrap" -}}
+  {{- if .Values.bootstrap.enabled -}}
+    {{- $image := required
+        "bootstrap.image.repository must be configured for bootstrapping"
+        .Values.bootstrap.image.repository
+    -}}
+    {{- $tag := required
+        "bootstrap.image.tag or bootstrap.image.digest must be configured for bootstrapping"
+        (coalesce .Values.bootstrap.image.tag .Values.bootstrap.image.digest)
+    -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "graphwise-workflows.validate" -}}
+  {{- include "graphwise-workflows.validate.bootstrap" . -}}
+{{- end -}}
+
+{{- include "graphwise-workflows.validate" . -}}

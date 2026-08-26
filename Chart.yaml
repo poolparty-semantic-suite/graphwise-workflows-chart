@@ -2,9 +2,9 @@ apiVersion: v2
 name: graphwise-workflows
 description: Graphwise's Workflows for automating workflow processes and knowledge graph retrieval
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: 1.0.0-M1
-kubeVersion: ^1.32.0-0
+kubeVersion: ^1.34.0-0
 home: https://graphwise.ai/
 icon: https://graphwise.ai/wp-content/uploads/2024/10/cropped-graphwise_favicon-192x192.png
 maintainers:

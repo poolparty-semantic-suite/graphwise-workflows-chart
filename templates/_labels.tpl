@@ -6,7 +6,11 @@ Expand the name of the chart.
 {{- end }}
 
 {{- define "graphwise-workflows.runners.name" -}}
-  {{- printf "%s-%s" (include "graphwise-workflows.name" .) "task-runners" | trunc 63 | replace "_" "-" | trimSuffix "-" }}
+  {{- printf "%s-%s" (include "graphwise-workflows.name" .) "task-runners" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "graphwise-workflows.bootstrap.job.name" -}}
+  {{- printf "%s-%s" (include "graphwise-workflows.name" .) "bootstrap" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
@@ -39,6 +43,10 @@ If release name contains chart name it will be used as a full name.
   {{- printf "%s-%s" (include "graphwise-workflows.fullname" .) "task-runners-token" | trunc 63 | replace "_" "-" | trimSuffix "-" }}
 {{- end }}
 
+{{- define "graphwise-workflows.bootstrap.job.fullname" -}}
+  {{- printf "%s-%s" (include "graphwise-workflows.fullname" .) "bootstrap" | trunc 63 | replace "_" "-" | trimSuffix "-" }}
+{{- end }}
+
 {{/*
 Create chart name and version as used by the chart label.
 */}}
@@ -65,6 +73,11 @@ Selector labels
 */}}
 {{- define "graphwise-workflows.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "graphwise-workflows.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- define "graphwise-workflows.bootstrap.job.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "graphwise-workflows.bootstrap.job.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
