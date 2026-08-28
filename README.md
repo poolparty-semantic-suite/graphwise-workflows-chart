@@ -80,7 +80,7 @@ the [example](examples/postgres/README.md) on how to deploy a PostgreSQL databas
 
 ### Encryption
 
-The Graphgwise Workflows require a master encryption key to be configured in order to encrypt sensitive data.
+The Graphwise Workflows require a master encryption key to be configured in order to encrypt sensitive data.
 
 ```shell
 kubectl create secret generic graphwise-workflows-encryption --from-literal=ENCRYPTION_KEY="XXXXXXXXXX"
@@ -94,6 +94,14 @@ configuration:
     existingSecret: graphwise-workflows-encryption
     secretKey: ENCRYPTION_KEY
 ```
+
+### Bootstrapping
+
+You can bootstrap the Graphwise Workflows by providing a container image that can execute provisioning scripts against
+the Workflows or its database. To do that, you have to:
+
+1. Set `bootstrap.enabled` to `true` to deploy a Helm hook Job that runs the configured image.
+2. Provide an actual container image in `boostrap.image` configuration section.
 
 ## Installation
 

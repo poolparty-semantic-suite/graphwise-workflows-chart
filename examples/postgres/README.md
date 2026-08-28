@@ -22,3 +22,9 @@ configuration:
       usernameKey: username
       passwordKey: password
 ```
+
+You can uninstall the database with:
+
+```shell
+kubectl delete -f database.yaml
+```

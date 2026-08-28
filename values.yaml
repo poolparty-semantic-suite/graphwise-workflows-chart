@@ -156,7 +156,7 @@ configuration:
   #
   # Note: When deploying on a context path different from /, you need to properly configure the Ingress according to the requirements of the
   # Ingress controller implementation.
-  externalUrl: http://workflows.127.0.0.1.nip.io/
+  externalUrl: https://workflows.127.0.0.1.nip.io/
 
   # Workflows configurations injected as environment variables via templates/configmap.yaml
   # The values are processed as Helm templates.
@@ -569,7 +569,7 @@ extraVolumes: []
 # Values are processed as Helm templates.
 extraVolumeMounts: []
 
-# Additional init containers to be inserted after the provisioning init containers.
+# Additional init containers to be inserted after the init containers.
 # Values are processed as Helm templates.
 extraInitContainers: []
 
@@ -752,7 +752,7 @@ runners:
   startupProbe:
     httpGet:
       path: /healthz
-      port: http
+      port: http-runners
       scheme: HTTP
     failureThreshold: 300
     timeoutSeconds: 1
@@ -762,7 +762,7 @@ runners:
   readinessProbe:
     httpGet:
       path: /healthz
-      port: http
+      port: http-runners
       scheme: HTTP
     timeoutSeconds: 5
     periodSeconds: 10
@@ -771,7 +771,7 @@ runners:
   livenessProbe:
     httpGet:
       path: /healthz
-      port: http
+      port: http-runners
       scheme: HTTP
     initialDelaySeconds: 60
     timeoutSeconds: 5
@@ -805,6 +805,220 @@ runners:
   # Use only for troubleshooting!
   # See https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/
   args: []
+
+######################################
+# Workflows Bootstrap Configurations #
+######################################
+
+# The chart can be configured to deploy a Job resource that will bootstrap the Graphwise Workflows instance
+# with a baseline set of workflows, credentials and other necessary data, from a given container image that
+# connects to the database.
+
+bootstrap:
+  # Toggles the bootstrap Job deployment.
+  # - When set to true, the chart will deploy a Job resource as a Helm chart hook that will bootstrap the Graphwise Workflows instance.
+  # - When set to false, the chart will not deploy the Job resource.
+  enabled: false
+
+  # Container image configurations for the bootstrap Job.
+  # You need to define the actual image that will be used for bootstrapping.
+  # Ref: https://kubernetes.io/docs/concepts/containers/images/
+  image:
+    # The registry that hosts the Workflows bootstrap image.
+    registry: maven.ontotext.com
+
+    # The repository name of the Workflows bootstrap image.
+    repository: ""
+
+    # Image tag that corresponds to the version of the Workflows bootstrap image.
+    tag: ""
+
+    # Expected SHA256 digest of the used Workflows bootstrap image, e.g. "sha256@abc"
+    # Use the digest to make sure you are always deploying the exact same Workflows bootstrap image.
+    # Defining this would override bootstrap.image.tag
+    digest: ""
+
+    # Defines the policy for pulling images
+    # Ref: https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy
+    pullPolicy: IfNotPresent
+
+    # Secrets for pulling Workflows bootstrap image from secured registries.
+    # This value is merged with any secrets defined in .Values.global.imagePullSecrets.
+    # Values are processed as Helm templates.
+    # Ref: https://kubernetes.io/docs/concepts/configuration/secret/#using-imagepullsecrets
+    #
+    # Example:
+    # pullSecrets:
+    #   - name: my-pull-secret
+    pullSecrets: []
+
+    # Image configurations for the bootstrap Job init container with curl.
+    # The job executes an init container with curl that waits for the Workflows to be ready before proceeding.
+    # This includes any migrations that the Workflows might perform, so it is important to wait for them to complete.
+    curl:
+      registry: docker.io
+      repository: alpine/curl
+      tag: 8.21.0
+      digest: ""
+      pullPolicy: IfNotPresent
+
+  #############################################
+  # Bootstrap Job Hook Configuration Settings #
+  #############################################
+
+  # Configurations for the Kubernetes Job created by Helm as a chart hook.
+  # Ref: https://helm.sh/docs/topics/charts_hooks/
+  # Ref: https://kubernetes.io/docs/concepts/workloads/controllers/job/
+  hook:
+    # Helm chart hook annotations to add to the Job resource.
+    # Controls the execution lifecycle of the Job.
+    annotations:
+      # You can use post-upgrade as well
+      helm.sh/hook: post-install
+      helm.sh/hook-delete-policy: before-hook-creation, hook-succeeded
+      helm.sh/hook-weight: "10"
+
+  configuration:
+    # Timeout in seconds for the init container that waits for the Workflows to be ready.
+    # Once this timeout is reached, Kubernetes will restart the init container.
+    # If you wish to enforce a hard timeout without further restarts, use bootstrap.activeDeadlineSeconds
+    wait_timeout: 60s
+
+  ########################################
+  # Bootstrap Job Configuration Settings #
+  ########################################
+
+  # The number of retries before marking the Job as failed.
+  backoffLimit: 10
+
+  # Duration in seconds relative to the startTime before the Job is cleaned up.
+  ttlSecondsAfterFinished: 120
+
+  # Maximum duration in seconds relative to the startTime that the job may be running before terminated.
+  activeDeadlineSeconds: ""
+
+  ##############################
+  # Bootstrap Job Pod Settings #
+  ##############################
+
+  # Overrides the default Kubernetes scheduler.
+  # See https://kubernetes.io/docs/tasks/extend-kubernetes/configure-multiple-schedulers/#specify-schedulers-for-pods
+  schedulerName: ""
+
+  # Overrides the Job's DNS settings.
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-dns-config
+  dnsConfig: {}
+
+  # Defines the Job's policy for DNS resolution.
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
+  dnsPolicy: ""
+
+  # Name of an existing PriorityClass to assign, defining the importance of the pods compared to other pods in the cluster.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
+
+  # Overrides the default Workflows bootstrap container command.
+  # Use only for troubleshooting!
+  # See https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/
+  command: []
+
+  # Overrides the default Workflows bootstrap container command's arguments.
+  # Use only for troubleshooting!
+  # See https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/
+  args: []
+
+  #################################################
+  # Bootstrap Job Security Context Configurations #
+  #################################################
+
+  # Defines privilege and access control settings for all containers in the bootstrap Job.
+  # See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Defines privilege and access control settings for the bootstrap containers.
+  # See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  ###########################################
+  # Bootstrap Job Scheduling Configurations #
+  ###########################################
+
+  # Selector labels to match when selecting nodes.
+  # Values are processed as Helm templates with the tpl function.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector
+  # See https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/
+  nodeSelector: {}
+
+  # Node and pod affinity & anti-affinity configurations for constraining the Pod scheduling.
+  # Values are processed as Helm templates.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
+
+  # List of taint tolerations.
+  # Values are processed as Helm templates.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+  tolerations: []
+
+  # Configurations for spreading Pods across different failure domains.
+  # Values are processed as Helm templates.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#pod-topology-spread-constraints
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
+  topologySpreadConstraints: []
+
+  ########################################
+  # Bootstrap Job Resource Configuration #
+  ########################################
+
+  # Resource configurations for the bootstrap Job containers.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/
+  resources:
+    limits:
+      memory: 64Mi
+    requests:
+      memory: 64Mi
+      cpu: 50m
+
+  ###############################################
+  # Bootstrap Job Additional Pod Configurations #
+  ###############################################
+
+  # Additional environment variables to be set for the Workflows bootstrap containers.
+  # Values are processed as Helm templates.
+  extraEnvFrom: []
+
+  # Additional environment variables to be set for the Workflows bootstrap containers.
+  # Values are processed as Helm templates.
+  extraEnv: []
+
+  # Additional volumes to be set for the Workflows bootstrap containers.
+  # Values are processed as Helm templates.
+  extraVolumes: []
+
+  # Additional volume mounts to be set for the Workflows bootstrap containers.
+  # Values are processed as Helm templates.
+  extraVolumeMounts: []
+
+  # Additional init containers to be inserted after the bootstrap init containers.
+  # Values are processed as Helm templates.
+  extraInitContainers: []
+
+  # Additional containers to insert into the Workflows bootstrap Job
+  # Values are processed as Helm templates.
+  extraContainers: []
 
 #################################
 # Additional Kubernetes Objects #

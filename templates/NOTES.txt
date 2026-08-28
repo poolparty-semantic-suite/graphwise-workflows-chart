@@ -7,15 +7,18 @@
          \/  \/   \____/|_|  \_\_|\_\_|    |______\____/   \/  \/  |_____/
                                  by Graphwise
 -------------------------------------------------------------------------------
-
 Graphwise Workflows {{ .Chart.Version }}
+  url: {{ include "graphwise-workflows.external-url" . }}
   image: {{ include "graphwise-workflows.image" . }}
   replicas: {{ .Values.replicas }}
-  url: {{ include "graphwise-workflows.external-url" . }}
   task runers: {{ include "graphwise-workflows.runners.mode" . }}
-{{- if .Values.runners.external }}
-  task runners image: {{ include "graphwise-workflows.runners.image" . }}
-{{- end }}
+    {{- if .Values.runners.external }}
+    image: {{ include "graphwise-workflows.runners.image" . }}
+    {{- end }}
+  bootstrap: {{ ternary "enabled" "disabled" .Values.bootstrap.enabled }}
+    {{- if .Values.bootstrap.enabled }}
+    image: {{ include "graphwise-workflows.bootstrap.job.image" . }}
+    {{- end }}
 
 ** Please be patient while the chart is being deployed and services are available **
   You can check their status with: kubectl --namespace {{ .Release.Namespace }} get pods
