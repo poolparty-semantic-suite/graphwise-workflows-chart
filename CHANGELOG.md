@@ -1,5 +1,14 @@
 # Graphwise Workflows Changelog
 
+## Version 0.3.0
+
+### New
+
+- Added `N8N_RESTRICT_FILE_ACCESS_TO` as default property. It fixes the permissions over specific directory in the main
+  container.
+- Added default ephemeral volume for the `/tmp` directory for the runners container. It is required by some of the
+  additional libraries installed in the container.
+
 ## Version 0.2.0
 
 ### New
