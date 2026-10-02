@@ -39,7 +39,7 @@ data:
   N8N_PATH: {{ include "graphwise-workflows.external-url.path" . | quote }}
   {{- end }}
   {{- if not (hasKey .Values.configuration.environment "WEBHOOK_URL") }}
-  WEBHOOK_URL: {{ include "graphwise-workflows.external-url" . | quote }}
+  N8N_WEBHOOK_URL: {{ include "graphwise-workflows.external-url" . | quote }}
   {{- end }}
   {{- if not (hasKey .Values.configuration.environment "N8N_PORT") }}
   N8N_PORT: {{ .Values.containerPorts.http | quote }}
