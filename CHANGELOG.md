@@ -9,6 +9,10 @@
 - Added default ephemeral volume for the `/tmp` directory for the runners container. It is required by some of the
   additional libraries installed in the container.
 
+### Updated
+
+- Updated `WEBHOOK_URL` to `N8N_WEBHOOK_URL`
+
 ## Version 0.2.0
 
 ### New
