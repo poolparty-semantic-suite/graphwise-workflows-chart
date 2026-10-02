@@ -167,6 +167,7 @@ configuration:
     N8N_LOG_LEVEL: "info"
     N8N_METRICS: "true"
     N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+    N8N_RESTRICT_FILE_ACCESS_TO: "/home/node/.n8n-files"
     N8N_PROXY_HOPS: "1"
     # Task runners
     # See https://docs.n8n.io/deploy/host-n8n/configure-n8n/basic-configuration/use-environment-variables/task-runners#n8n-instance-environment-variables
@@ -705,6 +706,18 @@ runners:
       emptyDir:
         # Default emptyDir limit, override to your needs.
         sizeLimit: 1Gi
+
+    # Volume for "/tmp" directory for the task runners.
+    # The "/tmp" directory should be available, because certain libraries in the container are relying on it for initialization.
+    tempVolume:
+      # Toggles the temp volume creation.
+      # - If enabled, the Deployment will use an ephemeral emptyDir for the volume.
+      enabled: true
+      # Configurations for an ephemeral emptyDir volume to be used for temp volume for the task runners.
+      # Ref: https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/
+      emptyDir:
+        # Default emptyDir limit, override to your needs.
+        sizeLimit: 128Mi
 
   #########################################
   # Task Runners Deployment Configuration #

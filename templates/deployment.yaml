@@ -69,6 +69,11 @@ spec:
           emptyDir:
             {{- .Values.runners.persistence.shared.emptyDir | toYaml | nindent 12 }}
         {{- end }}
+        {{- if and .Values.runners.external .Values.runners.persistence.tempVolume.enabled }}
+        - name: runners-temp-dir
+          emptyDir:
+            {{- .Values.runners.persistence.tempVolume.emptyDir | toYaml | nindent 12 }}
+        {{- end }}
       {{- with .Values.extraVolumes }}
         {{- tpl (toYaml .) $ | nindent 8 }}
       {{- end }}
@@ -281,6 +286,10 @@ spec:
           {{- if .Values.runners.persistence.shared.enabled }}
             - name: shared-volume
               mountPath: {{ .Values.runners.persistence.shared.mountPath }}
+          {{- end }}
+          {{- if and .Values.runners.external .Values.runners.persistence.tempVolume.enabled }}
+            - name: runners-temp-dir
+              mountPath: /tmp
           {{- end }}
             {{- with .Values.runners.extraVolumeMounts }}
               {{- tpl (toYaml .) $ | nindent 12 }}
