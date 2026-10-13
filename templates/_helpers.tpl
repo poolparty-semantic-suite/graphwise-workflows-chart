@@ -67,7 +67,7 @@ Renders the container image for the task runners
 */}}
 {{- define "graphwise-workflows.runners.image" -}}
   {{- $repository := .Values.runners.image.repository -}}
-  {{- $tag := .Values.runners.image.tag | toString -}}
+  {{- $tag := .Values.runners.image.tag | default .Chart.AppVersion | toString -}}
   {{- $image := printf "%s:%s" $repository $tag -}}
   {{/* Add registry if present */}}
   {{- $registry := .Values.global.imageRegistry | default .Values.runners.image.registry -}}

@@ -36,8 +36,8 @@ nameOverride: ""
 # This override takes precedence over anything in .Values.nameOverride
 fullnameOverride: ""
 
-# Overrides the deployment namespace in case of multi-namespace deployments, for example when using umbrella charts where some sub-charts should be
-# deployed in different namespaces.
+# Overrides the deployment namespace in case of multi-namespace deployments, for example, when using umbrella charts
+# where some sub-charts should be deployed in different namespaces.
 # This affects every resource deployed by this chart.
 # The default value is .Release.Namespace if this is left unspecified.
 namespaceOverride: ""
@@ -125,7 +125,7 @@ autoscaling:
 ######################################
 
 # A commercial license key is required for using enterprise features.
-# Enabled when license.existingSecret is specifiued.
+# Enabled when license.existingSecret is specified.
 # Ref: https://docs.n8n.io/hosting/configuration/environment-variables/licenses/#license-environment-variables
 license:
   # Reference to a Secret containing a field with the Workflows license key.
@@ -135,7 +135,7 @@ license:
   # The default is N8N_LICENSE_ACTIVATION_KEY, but it can be changed to map to a different Secret key.
   licenseKey: N8N_LICENSE_ACTIVATION_KEY
   # Name of the key in the existing Secret that contains a specific tenant identifier.
-  # When specified, this takes precedense over license.tenantId.
+  # When specified, this takes precedence over license.tenantId.
   # Prefer reading this from a secret over plain text license.tenantId.
   tenantIdKey:  # N8N_LICENSE_TENANT_ID
   # Dedicated tenant identifier for organizations using N8N Enterprise.
@@ -577,7 +577,7 @@ extraInitContainers: []
 # Additional Workflows container ports to expose.
 extraContainerPorts: {}
 
-# Additional containers to insert into the Workflows Pod, e.g. sidecar containers
+# Additional containers to insert into the Workflows Pod, e.g., sidecar containers
 # Values are processed as Helm templates.
 extraContainers: []
 
@@ -645,7 +645,9 @@ runners:
     repository: graphwise-runners
 
     # Image tag that corresponds to the version of the Workflows task runners.
-    tag: 1.0.0-M1
+    # By default, the chart uses .Chart.AppVersion to construct the full image name.
+    # Use this to override the value from .Chart.AppVersion and effectively deploy a custom Workflows task runners version.
+    tag: ""
 
     # Expected SHA256 digest of the used Workflows task runners image, e.g. "sha256@abc"
     # Use the digest to make sure you are always deploying the exact same Workflows task runners image.
@@ -662,7 +664,7 @@ runners:
 
   # Workflows Task Runners configuration settings.
   configuration:
-    # Environment variables to be set for the Workflows task runners, injected as a ConfigMap
+    # Environment variables to be set for the Workflows task runners, injected via ConfigMap
     # Values are processed as Helm templates.
     # See https://docs.n8n.io/deploy/host-n8n/configure-n8n/basic-configuration/use-environment-variables/task-runners#task-runner-launcher-environment-variables
     environment:
@@ -700,6 +702,8 @@ runners:
       enabled: true
       # Storage location inside the containers where the shared volume will be mounted at.
       mountPath: /home/node/.n8n-files
+      # Name of the PV declaration
+      volumeName: runners-shared-volume
       # Configurations for an ephemeral emptyDir volume to be used for shared data storage between Workflows instances
       # and task runners.
       # Ref: https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/
@@ -708,7 +712,7 @@ runners:
         sizeLimit: 1Gi
 
     # Volume for "/tmp" directory for the task runners.
-    # The "/tmp" directory should be available, because certain libraries in the container are relying on it for initialization.
+    # The "/tmp" directory should be available because certain libraries in the container are relying on it for initialization.
     tempVolume:
       # Toggles the temp volume creation.
       # - If enabled, the Deployment will use an ephemeral emptyDir for the volume.
