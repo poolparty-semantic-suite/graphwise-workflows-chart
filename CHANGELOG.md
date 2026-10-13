@@ -8,10 +8,14 @@
   container.
 - Added default ephemeral volume for the `/tmp` directory for the runners container. It is required by some of the
   additional libraries installed in the container.
+- Added `runners.persistence.shared.volumeName` to specify the volume name declaration
 
 ### Updated
 
 - Updated `WEBHOOK_URL` to `N8N_WEBHOOK_URL`
+- Updated to Graphwise Workflows version 1.0.0-RC1
+- Updated to Graphwise Runners version 1.0.0-RC1
+- Updated Task runners to use `.Chart.AppVersion` as their image's tag
 
 ## Version 0.2.0
 
