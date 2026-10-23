@@ -1,5 +1,15 @@
 # Graphwise Workflows Changelog
 
+## Version 0.4.0
+
+### New
+
+- Added the `configuration.graphwiseOIDC` configuration section for the OIDC (Keycloak) login hook bundled in the Workflows image. It is
+  disabled by default; when disabled, the chart sets `GRAPHWISE_OIDC_ENABLED=false`. Users need the `workflow-access`
+  role in Keycloak. The client secret comes from `configuration.graphwiseOIDC.clientSecret.existingSecret`, or for development from
+  `configuration.graphwiseOIDC.clientSecret.secret`, in which case the chart creates the Secret.
+- Added `hostAliases` for mapping hostnames that aren't resolvable from inside the cluster, e.g. the OIDC issuer's.
+
 ## Version 0.3.0
 
 ### New

@@ -42,6 +42,9 @@ spec:
       {{- if .Values.dnsPolicy }}
       dnsPolicy: {{ .Values.dnsPolicy }}
       {{- end }}
+      {{- with .Values.hostAliases }}
+      hostAliases: {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName }}
       {{- end }}
@@ -149,6 +152,7 @@ spec:
             .Values.configuration.encryption.existingSecret
             .Values.license.existingSecret
             .Values.configuration.postgresdb.credentials.existingSecret
+            .Values.configuration.graphwiseOIDC.enabled
             .Values.extraEnv
           }}
           env:
@@ -194,6 +198,17 @@ spec:
                 secretKeyRef:
                   name: {{ tpl .Values.configuration.postgresdb.credentials.existingSecret $ }}
                   key: {{ .Values.configuration.postgresdb.credentials.passwordKey }}
+            {{- end }}
+            {{- if .Values.configuration.graphwiseOIDC.enabled }}
+            - name: GRAPHWISE_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.configuration.graphwiseOIDC.clientSecret.existingSecret }}
+                  name: {{ tpl .Values.configuration.graphwiseOIDC.clientSecret.existingSecret $ }}
+                  {{- else }}
+                  name: {{ include "graphwise-workflows.graphwiseOIDC.secrets.client.fullname" . }}
+                  {{- end }}
+                  key: {{ .Values.configuration.graphwiseOIDC.clientSecret.secretKey }}
             {{- end }}
             {{- if .Values.runners.external }}
               {{- if .Values.runners.configuration.token.existingSecret }}

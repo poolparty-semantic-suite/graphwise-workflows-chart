@@ -107,6 +107,17 @@ Ensures a trailing slash for proper static resource loading.
   {{- coalesce .Values.ingress.path (include "graphwise-workflows.external-url.path" .) -}}
 {{- end -}}
 
+{{/*
+Renders the OIDC callback URL: .Values.configuration.graphwiseOIDC.redirectUri, or <externalUrl>/auth/oidc/callback
+*/}}
+{{- define "graphwise-workflows.graphwiseOIDC.redirect-uri" -}}
+  {{- if .Values.configuration.graphwiseOIDC.redirectUri -}}
+    {{- tpl .Values.configuration.graphwiseOIDC.redirectUri . -}}
+  {{- else -}}
+    {{- printf "%s/auth/oidc/callback" (include "graphwise-workflows.external-url" . | trimSuffix "/") -}}
+  {{- end -}}
+{{- end -}}
+
 {{- define "graphwise-workflows.internal-url" -}}
   {{- printf "http://%s:%s" (include "graphwise-workflows.fullname" .) (.Values.service.ports.http | toString) -}}
 {{- end -}}
