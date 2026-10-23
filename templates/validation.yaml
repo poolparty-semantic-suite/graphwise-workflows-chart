@@ -11,20 +11,20 @@
   {{- end -}}
 {{- end -}}
 
-{{- define "graphwise-workflows.validate.oidc" -}}
-  {{- if .Values.graphwiseOidc.enabled -}}
-    {{- $issuerUrl := required "graphwiseOidc.issuerUrl must be configured when graphwiseOidc.enabled is true" .Values.graphwiseOidc.issuerUrl -}}
-    {{- $clientId := required "graphwiseOidc.clientId must be configured when graphwiseOidc.enabled is true" .Values.graphwiseOidc.clientId -}}
+{{- define "graphwise-workflows.validate.graphwiseOIDC" -}}
+  {{- if .Values.configuration.graphwiseOIDC.enabled -}}
+    {{- $issuerUrl := required "configuration.graphwiseOIDC.issuerUrl must be configured when configuration.graphwiseOIDC.enabled is true" .Values.configuration.graphwiseOIDC.issuerUrl -}}
+    {{- $clientId := required "configuration.graphwiseOIDC.clientId must be configured when configuration.graphwiseOIDC.enabled is true" .Values.configuration.graphwiseOIDC.clientId -}}
     {{- $clientSecret := required
-        "graphwiseOidc.clientSecret.existingSecret or graphwiseOidc.clientSecret.secret must be configured when graphwiseOidc.enabled is true"
-        (coalesce .Values.graphwiseOidc.clientSecret.existingSecret .Values.graphwiseOidc.clientSecret.secret)
+        "configuration.graphwiseOIDC.clientSecret.existingSecret or configuration.graphwiseOIDC.clientSecret.secret must be configured when configuration.graphwiseOIDC.enabled is true"
+        (coalesce .Values.configuration.graphwiseOIDC.clientSecret.existingSecret .Values.configuration.graphwiseOIDC.clientSecret.secret)
     -}}
   {{- end -}}
 {{- end -}}
 
 {{- define "graphwise-workflows.validate" -}}
   {{- include "graphwise-workflows.validate.bootstrap" . -}}
-  {{- include "graphwise-workflows.validate.oidc" . -}}
+  {{- include "graphwise-workflows.validate.graphwiseOIDC" . -}}
 {{- end -}}
 
 {{- include "graphwise-workflows.validate" . -}}

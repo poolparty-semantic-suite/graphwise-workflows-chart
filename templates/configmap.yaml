@@ -47,11 +47,11 @@ data:
   {{- if not (hasKey .Values.configuration.environment "N8N_RUNNERS_MODE") }}
   N8N_RUNNERS_MODE: {{ include "graphwise-workflows.runners.mode" . | quote }}
   {{- end }}
-  {{- /* OIDC hook, see .Values.graphwiseOidc */}}
+  {{- /* OIDC hook, see .Values.configuration.graphwiseOIDC */}}
   {{- if not (hasKey .Values.configuration.environment "GRAPHWISE_OIDC_ENABLED") }}
-  GRAPHWISE_OIDC_ENABLED: {{ .Values.graphwiseOidc.enabled | toString | quote }}
+  GRAPHWISE_OIDC_ENABLED: {{ .Values.configuration.graphwiseOIDC.enabled | toString | quote }}
   {{- end }}
-  {{- if .Values.graphwiseOidc.enabled }}
+  {{- if .Values.configuration.graphwiseOIDC.enabled }}
   {{- if not (hasKey .Values.configuration.environment "N8N_ADDITIONAL_NON_UI_ROUTES") }}
   # Keeps the UI router from serving index.html for the hook's /auth/oidc/* routes
   N8N_ADDITIONAL_NON_UI_ROUTES: "auth"
@@ -60,16 +60,16 @@ data:
   EXTERNAL_FRONTEND_HOOKS_URLS: {{ printf "%sassets/oidc-frontend-hook.js" (include "graphwise-workflows.external-url.path" .) | quote }}
   {{- end }}
   {{- if not (hasKey .Values.configuration.environment "GRAPHWISE_OIDC_ISSUER_URL") }}
-  GRAPHWISE_OIDC_ISSUER_URL: {{ tpl .Values.graphwiseOidc.issuerUrl $ | quote }}
+  GRAPHWISE_OIDC_ISSUER_URL: {{ tpl .Values.configuration.graphwiseOIDC.issuerUrl $ | quote }}
   {{- end }}
   {{- if not (hasKey .Values.configuration.environment "GRAPHWISE_OIDC_CLIENT_ID") }}
-  GRAPHWISE_OIDC_CLIENT_ID: {{ tpl .Values.graphwiseOidc.clientId $ | quote }}
+  GRAPHWISE_OIDC_CLIENT_ID: {{ tpl .Values.configuration.graphwiseOIDC.clientId $ | quote }}
   {{- end }}
   {{- if not (hasKey .Values.configuration.environment "GRAPHWISE_OIDC_REDIRECT_URI") }}
-  GRAPHWISE_OIDC_REDIRECT_URI: {{ include "graphwise-workflows.graphwiseOidc.redirect-uri" . | quote }}
+  GRAPHWISE_OIDC_REDIRECT_URI: {{ include "graphwise-workflows.graphwiseOIDC.redirect-uri" . | quote }}
   {{- end }}
   {{- if not (hasKey .Values.configuration.environment "GRAPHWISE_OIDC_ALLOW_EMAIL_LOGIN") }}
-  GRAPHWISE_OIDC_ALLOW_EMAIL_LOGIN: {{ .Values.graphwiseOidc.allowEmailLogin | toString | quote }}
+  GRAPHWISE_OIDC_ALLOW_EMAIL_LOGIN: {{ .Values.configuration.graphwiseOIDC.allowEmailLogin | toString | quote }}
   {{- end }}
   {{- end }}
   {{- /* Overrides from values.yaml */}}

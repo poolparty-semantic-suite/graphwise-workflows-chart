@@ -152,7 +152,7 @@ spec:
             .Values.configuration.encryption.existingSecret
             .Values.license.existingSecret
             .Values.configuration.postgresdb.credentials.existingSecret
-            .Values.graphwiseOidc.enabled
+            .Values.configuration.graphwiseOIDC.enabled
             .Values.extraEnv
           }}
           env:
@@ -199,16 +199,16 @@ spec:
                   name: {{ tpl .Values.configuration.postgresdb.credentials.existingSecret $ }}
                   key: {{ .Values.configuration.postgresdb.credentials.passwordKey }}
             {{- end }}
-            {{- if .Values.graphwiseOidc.enabled }}
+            {{- if .Values.configuration.graphwiseOIDC.enabled }}
             - name: GRAPHWISE_OIDC_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  {{- if .Values.graphwiseOidc.clientSecret.existingSecret }}
-                  name: {{ tpl .Values.graphwiseOidc.clientSecret.existingSecret $ }}
+                  {{- if .Values.configuration.graphwiseOIDC.clientSecret.existingSecret }}
+                  name: {{ tpl .Values.configuration.graphwiseOIDC.clientSecret.existingSecret $ }}
                   {{- else }}
-                  name: {{ include "graphwise-workflows.graphwiseOidc.secrets.client.fullname" . }}
+                  name: {{ include "graphwise-workflows.graphwiseOIDC.secrets.client.fullname" . }}
                   {{- end }}
-                  key: {{ .Values.graphwiseOidc.clientSecret.secretKey }}
+                  key: {{ .Values.configuration.graphwiseOIDC.clientSecret.secretKey }}
             {{- end }}
             {{- if .Values.runners.external }}
               {{- if .Values.runners.configuration.token.existingSecret }}

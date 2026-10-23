@@ -39,8 +39,8 @@ If release name contains chart name it will be used as a full name.
   {{- printf "%s-%s" (include "graphwise-workflows.fullname" .) "encryption" | trunc 63 | replace "_" "-" | trimSuffix "-" }}
 {{- end }}
 
-{{- define "graphwise-workflows.graphwiseOidc.secrets.client.fullname" -}}
-  {{- printf "%s-%s" (include "graphwise-workflows.fullname" .) "oidc-client" | trunc 63 | replace "_" "-" | trimSuffix "-" }}
+{{- define "graphwise-workflows.graphwiseOIDC.secrets.client.fullname" -}}
+  {{- printf "%s-%s" (include "graphwise-workflows.fullname" .) "graphwise-oidc-client" | trunc 63 | replace "_" "-" | trimSuffix "-" }}
 {{- end }}
 
 {{- define "graphwise-workflows.runners.secrets.token.fullname" -}}

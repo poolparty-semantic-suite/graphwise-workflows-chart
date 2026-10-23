@@ -108,11 +108,11 @@ Ensures a trailing slash for proper static resource loading.
 {{- end -}}
 
 {{/*
-Renders the OIDC callback URL: .Values.graphwiseOidc.redirectUri, or <externalUrl>/auth/oidc/callback
+Renders the OIDC callback URL: .Values.configuration.graphwiseOIDC.redirectUri, or <externalUrl>/auth/oidc/callback
 */}}
-{{- define "graphwise-workflows.graphwiseOidc.redirect-uri" -}}
-  {{- if .Values.graphwiseOidc.redirectUri -}}
-    {{- tpl .Values.graphwiseOidc.redirectUri . -}}
+{{- define "graphwise-workflows.graphwiseOIDC.redirect-uri" -}}
+  {{- if .Values.configuration.graphwiseOIDC.redirectUri -}}
+    {{- tpl .Values.configuration.graphwiseOIDC.redirectUri . -}}
   {{- else -}}
     {{- printf "%s/auth/oidc/callback" (include "graphwise-workflows.external-url" . | trimSuffix "/") -}}
   {{- end -}}
