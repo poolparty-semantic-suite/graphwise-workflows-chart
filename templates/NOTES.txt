@@ -15,6 +15,11 @@ Graphwise Workflows {{ .Chart.Version }}
     {{- if .Values.runners.external }}
     image: {{ include "graphwise-workflows.runners.image" . }}
     {{- end }}
+  oidc: {{ ternary "enabled" "disabled" .Values.graphwiseOidc.enabled }}
+    {{- if .Values.graphwiseOidc.enabled }}
+    issuer: {{ tpl .Values.graphwiseOidc.issuerUrl . }}
+    redirect URI: {{ include "graphwise-workflows.graphwiseOidc.redirect-uri" . }}
+    {{- end }}
   bootstrap: {{ ternary "enabled" "disabled" .Values.bootstrap.enabled }}
     {{- if .Values.bootstrap.enabled }}
     image: {{ include "graphwise-workflows.bootstrap.job.image" . }}
