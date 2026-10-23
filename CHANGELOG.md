@@ -1,5 +1,11 @@
 # Graphwise Workflows Changelog
 
+## Version 0.4.0-RC1
+
+### Updated
+
+- Updated to Graphwise Workflows version 1.0.0-RC4
+
 ## Version 0.3.0
 
 ### New
