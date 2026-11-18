@@ -2,6 +2,31 @@ apiVersion: v1
 entries:
   graphwise-workflows:
   - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2026-11-18T14:53:55.673507415Z"
+    description: Graphwise's Workflows for automating workflow processes and knowledge
+      graph retrieval
+    digest: fe750140cd0ef64cb6223a4566777883f4bed307d9c9cea95dbd532111f5c1ba
+    home: https://graphwise.ai/
+    icon: https://graphwise.ai/wp-content/uploads/2024/10/cropped-graphwise_favicon-192x192.png
+    keywords:
+    - graphwise
+    - workflows
+    - semantic
+    - knowledge
+    kubeVersion: ^1.34.0-0
+    maintainers:
+    - email: support@graphwise.ai
+      name: poolparty-semantic-suite
+      url: https://graphwise.ai
+    name: graphwise-workflows
+    sources:
+    - https://github.com/poolparty-semantic-suite/graphwise-workflows-chart
+    type: application
+    urls:
+    - https://github.com/poolparty-semantic-suite/graphwise-workflows-chart/releases/download/graphwise-workflows-0.5.0/graphwise-workflows-0.5.0.tgz
+    version: 0.5.0
+  - apiVersion: v2
     appVersion: 1.0.0
     created: "2026-11-03T09:30:08.617263559Z"
     description: Graphwise's Workflows for automating workflow processes and knowledge
@@ -126,4 +151,4 @@ entries:
     urls:
     - https://github.com/poolparty-semantic-suite/graphwise-workflows-chart/releases/download/graphwise-workflows-0.1.0/graphwise-workflows-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-03T09:30:08.617288856Z"
+generated: "2026-11-18T14:53:55.673542611Z"
