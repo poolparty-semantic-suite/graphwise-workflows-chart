@@ -1,5 +1,12 @@
 # Graphwise Workflows Changelog
 
+## Version 0.5.0
+
+### Updated
+
+- Updated to Graphwise Workflows version 1.1.0
+- Updated to Graphwise Workflows Task Runners version 1.1.0
+
 ## Version 0.4.0
 
 ### Updated
